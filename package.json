@@ -37,7 +37,7 @@
     "classnames": "^2.2.3",
     "history": "^1.17.0",
     "immutable": "^3.7.5",
-    "meteor-standalone-react-mixin": "0.0.4",
+    "meteor-standalone-react-mixin": "*",
     "normalize.css": "^3.0.3",
     "react": "^0.14.7",
     "react-dom": "^0.14.7",
