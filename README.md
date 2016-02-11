@@ -10,7 +10,7 @@ This package shows how simple it can be.  It is adapted from the React Todo but 
 ## Installation
 
 ```
-git clone https://github.com/ivanthedeployer/reactivetodo todo
+git clone https://github.com/ivanthedeployer/todo
 cd todo
 npm install
 webpack   # or ./node_modules/.bin/webpack if that gives an error
@@ -254,7 +254,7 @@ Todos.find().observeChanges({
 });
 ```
 
-(More info on .observeChanges and its sister functions)[http://docs.meteor.com/#/full/observe_changes]
+[More info on `.observeChanges` and its sister functions](http://docs.meteor.com/#/full/observe_changes)
 
 ## Benefits
 

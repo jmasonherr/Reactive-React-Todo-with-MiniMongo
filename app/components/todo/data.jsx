@@ -39,7 +39,7 @@ Todos.find().observeChanges({
 });
 
 // Keep track of whether in an editing state
-var appState = new ReactiveDict.ReactiveDict;
+var appState = new ReactiveDict;
 appState.set('editing', false);
 
 
