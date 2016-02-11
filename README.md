@@ -1,11 +1,13 @@
 # React TodoMVC with Minimongo
-How do you manage data with React.js?
 
-Build the frontend like the backend - with a database.  React is a JavaScript library for creating user interfaces.  Minimongo is MongoDB, in your browser. When the database changes, the UI automagically propagates to React.
+How do you manage React.js data? With a database!
 
-Minimongo is built by the [Meteor](http://docs.meteor.com/) team.  It is heavily tested and [well documented](http://docs.meteor.com/#/full/mongo_collection). This package is a standalone fork of MDG's [React mixin](https://github.com/meteor/react-packages/blob/devel/packages/react-meteor-data/meteor-data-mixin.jsx)
+## Benefits
 
-This package shows how simple it can be.  It is adapted from the React Todo but has much less code.
+* Use a database! Everybody loves a database!
+* Super simple!
+* Automatic UI updates!
+* Jargon and flow chart free! (except maybe [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming)) 
 
 ## Installation
 
@@ -13,13 +15,39 @@ This package shows how simple it can be.  It is adapted from the React Todo but 
 git clone https://github.com/ivanthedeployer/todo
 cd todo
 npm install
-webpack   # or ./node_modules/.bin/webpack if that gives an error
+webpack   # or ./node_modules/.bin/webpack if you get an error
 npm start
 ```
 
-Navigate to  http://localhost:8080.
+Navigate to  http://localhost:8080. for hot-reloading goodness
+
+### Quick start
+
+```
+// Import mixin and reactive data source
+import { ReactMeteorData, Mongo } from 'meteor-standalone-react-mixin'
+
+// Create Reactive Data source
+var Todos = new Mongo.Collection('todos');
+
+// Define 'getMeteorData' on your react class
+var TodoApp = React.createClass({
+    mixins: [ReactMeteorData],
+    getMeteorData: function() {
+        return {activeTodos: Todos.find({completed: false}).fetch()};
+    },
+
+    render: function() {
+        this.data.activeTodos.map(...)
+    }
+});
+```
+
+`ReactMeteorData` adds  `this.data` to your React class.  `this.data` acts alike `this.props` or `this.state`.  When the data accessed by `ReactMeteorData` change, your component updates.
 
 ## Walkthrough
+
+This example makes reactive data sources to keep the app's data and state. Then React components listen to those sources.  [What is reactive programming?](http://docs.meteor.com/#/full/reactivity)
 
 ```
 import { Mongo, ReactiveDict } from 'meteor-standalone-react-mixin'
@@ -29,21 +57,23 @@ var Todos = new Mongo.Collection('todos');
 var appState = new ReactiveDict;
 ```
 
-`Mongo.Collection` is a reactive database collection very similar to MongoDB's collections.  Each item in the collection has a unique `_id` property. We create one to hold our `Todos`. 
+There are two 'reactive data sources' in this example.
 
-`ReactiveDict` is like a javascript dictionary with getters and setters, and it is also reactive.  It keeps track of the application's state.  Any change in this will also cause a refresh in components that depend on it.
+1 - `Mongo.Collection` is a schemaless database collection that can be queried like MongoDB. Each item in the collection has a unique `_id` property. We create a collection to hold our `Todos`. 
+
+2 - `ReactiveDict` is like a javascript dictionary with getters and setters, and it is also reactive.  It keeps track of the application's state.  Any change in this will also cause a refresh in components that depend on it.
 
 Now that we have a place to store data and application state, we can write the views
 
 ```
 import { Todos, appState } from './todo/data.jsx'
 import { TodoItem } from './todo/todoItem.jsx'
-import { ReactiveMixin } from 'meteor-standalone-react-mixin'
+import { ReactMeteorData } from 'meteor-standalone-react-mixin'
 
 
 const TodoApp = React.createClass({
     // To make a React class react to a reactive data source, add this mixin
-    mixins: [ReactiveMixin],
+    mixins: [ReactMeteorData],
 
     getMeteorData: function () {
         var queryFilters = {};
@@ -80,7 +110,9 @@ const TodoApp = React.createClass({
 
 ```
 
-Now any changes made to `Todos`, the window location, or `appState` will automagically show up on `this.data`. So the `render` function looks like this-
+Changes in `.data` trigger a component refresh just like `.state` or `.props`
+
+Any changes made to the collection of `Todos`, the window location, or `appState` will automagically update `this.data` and trigger a refresh of `TodoApp`. The `render` function looks like this-
 
 ```
     ...
@@ -138,6 +170,8 @@ Now any changes made to `Todos`, the window location, or `appState` will automag
 
 ```
 
+Access `this.data` just like you would `this.state` or `this.props`. Modifying the underlying collection will update any React classes affected.
+
 How to insert a new `Todo`?  Look at the `handleKeyUp` method in `App.jsx`
 
 ```
@@ -179,7 +213,7 @@ How to insert a new `Todo`?  Look at the `handleKeyUp` method in `App.jsx`
 ```
 
 
-That's it.  Now we can create Todos, toggle their status in bulk, or clear completed todos.  Unlike most React code the rest of the methods are on `TodoItem`.  Usually functions from `TodoApp` are passed as props to its children, but since `Todos` is available to `TodoItem`, we don't have to.
+That's it.  Now we can create Todos, toggle their status in bulk, or clear completed todos.  Unlike most React code the rest of the methods are on `TodoItem`.  Usually functions from `TodoApp` would be passed as props to its children, but since `Todos` is available to `TodoItem`, we can put them directly on `TodoItem`.
 
 Updating a `Todo` is handled by its own view.  No need to `.apply` variables in the parent
 
@@ -236,11 +270,11 @@ The following fires on `onKeyUp` when editing a `Todo`
 
 #### What is 'appState' doing? 
 
-`appState` is reactive too.  Its api has `.get(key)` and `.set(key, val)` methods. Only 1 `Todo` can be edited at a time.  `TodoApp` is observing its value and passing it to the `TodoItems`.  There are likely more elegant solutions, but this showcases its functionality.
+`appState` is a reactive dictionary.  Its api has `.get(key)` and `.set(key, val)` methods. When it changes, any React classes that accessed its values in `getMeteorData` will refresh.  `TodoApp` is observing its value and passing it to the `TodoItems`.  There are likely more elegant solutions, but this is here to showcase its functionality.
 
 #### Observing a Collection query outside of getMeteorData
 
-Sometimes you don't want a whole React class just to watch a collection. This is when `.observeChanges` is handy.  In this case, the entire `Todos` collection is persisted to `localStorage` when a document is `added`, `changed`, or `removed`.
+Sometimes you want to watch data changes outside of a React class. This is when `.observeChanges` is handy.  In this case, the entire `Todos` collection is persisted to `localStorage` when a document is `added`, `changed`, or `removed`. [Deeper dive](http://docs.meteor.com/#/full/observe_changes)
 
 ```
 var saveInLocalStorage = function() {
@@ -256,13 +290,6 @@ Todos.find().observeChanges({
 
 [More info on `.observeChanges` and its sister functions](http://docs.meteor.com/#/full/observe_changes)
 
-## Benefits
-
-* Use a database! Everybody loves a database!
-* Super simple!
-* Automatic UI updates!
-* Jargon free! (except maybe [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming)) 
-
 ## Under the hood
 
 MiniMongo is built on [Tracker](https://www.meteor.com/tracker), a tiny reactivity library built by MDG.  This, along with their [React integration mixin](https://github.com/meteor/react-packages/blob/devel/packages/react-meteor-data/meteor-data-mixin.jsx) have been packaged by this library for standalone use with minimal modifications.  
@@ -270,6 +297,7 @@ MiniMongo is built on [Tracker](https://www.meteor.com/tracker), a tiny reactivi
 Now that you don't have to write as much code, here are the docs-
 
 ### Further Documentation
+* [ReactMeteorData mixin](https://react-in-meteor.readthedocs.org/en/latest/meteor-data/)
 * [MiniMongo](http://docs.meteor.com/#/full/mongo_collection)
 * [Tracker](https://www.meteor.com/tracker)
 * [Mongo Query Syntax](https://docs.mongodb.org/manual/tutorial/query-documents/)

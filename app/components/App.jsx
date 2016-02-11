@@ -3,23 +3,18 @@ import React from 'react'
 import { TodoFooter } from './todo/footer.jsx'
 import { Todos, appState } from './todo/data.jsx'
 import { TodoItem } from './todo/todoItem.jsx'
-import { ReactiveMixin } from 'meteor-standalone-react-mixin'
-
-
-// function is_server() {
-//    return ! (typeof window != 'undefined' && window.document);
-// }
-// window.Meteor = {isServer: is_server()};
+import { ReactMeteorData } from 'meteor-standalone-react-mixin'
 
 
 // Go home to all TODOs to begin with
-
+window.Todos = Todos;
 var ENTER_KEY = 13;
 
 const TodoApp = React.createClass({
-	mixins: [ReactiveMixin],
+	mixins: [ReactMeteorData],
 
 	getMeteorData: function () {
+
 		var queryFilters = {};
 		var _location = this.props.location.pathname;
 		var sortStatement = {sort: {createdAt: -1}};
@@ -75,6 +70,7 @@ const TodoApp = React.createClass({
 		var self = this;
 		var footer;
 		var main;
+
 		var todoItems = this.data.todos.map(function (todo) {
 			return (
 				<TodoItem
